@@ -23,7 +23,7 @@ export const Main: FC = () => {
     fetchLaunchList()
       .then(
         (launchList: Launch[]) => {
-          console.log(launchList);
+          console.log(launchList.slice(0, 5));
           setLaunchList(launchList);
           setLaunchListStatus(Status.RESOLVED);
 
@@ -76,7 +76,7 @@ export const Main: FC = () => {
         {launchListStatus === Status.PENDING && <p>Loading...</p>}
         {launchListStatus === Status.REJECTED && <p>{launchListError}</p>}
         {launchListStatus === Status.RESOLVED && (
-          <ErrorBoundary>
+          <>
             {rocketCostMapStatus === Status.PENDING && (
               <p>Loading Total Cost of Launches...</p>
             )}
@@ -94,7 +94,7 @@ export const Main: FC = () => {
             )}
 
             <LaunchList launchList={launchListWithRocketCost} />
-          </ErrorBoundary>
+          </>
         )}
       </div>
     </main>

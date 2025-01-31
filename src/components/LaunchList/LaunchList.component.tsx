@@ -1,6 +1,6 @@
 import { FC, useState, useEffect } from 'react';
 
-import { LaunchCard } from 'components';
+import { LaunchCard, ErrorBoundary } from 'components';
 import { Launch, Status, RocketCostMap } from 'types';
 import { fetchLaunchList, fetchRocket } from 'services';
 
@@ -12,49 +12,57 @@ interface LaunchListProps {
 }
 
 export const LaunchList: FC<LaunchListProps> = ({ launchList }) => {
-  return (
-    <ul className={classes['launch-list']}>
-      {launchList.map(
-        (
-          {
-            flight_number,
-            mission_name,
-            launch_date_utc,
-            rocket: {
-              second_stage: { payloads },
-            },
-            cost,
-          },
-          index
-        ) => {
-          const satelliteCount = payloads.reduce(
-            (accumulator, payload) =>
-              payload.payload_type === 'Satellite' ? 1 : 0 + accumulator,
-            0
-          );
+  const sortedLaunchList = launchList.toSorted((a, b) =>
+    b.launch_date_utc.localeCompare(a.launch_date_utc)
+  );
 
-          let hoursSinceLastLaunch: number | null = null;
-          if (index > 0) {
-            const prevLaunch = launchList[index - 1];
-            hoursSinceLastLaunch = getDifferenceBetweenUTCDatesInHours(
-              prevLaunch.launch_date_utc,
-              launch_date_utc
+  return (
+    <ErrorBoundary>
+      <ul className={classes['launch-list']}>
+        {sortedLaunchList.map(
+          (
+            {
+              flight_number,
+              mission_name,
+              launch_date_utc,
+              rocket: {
+                second_stage: { payloads },
+              },
+              cost,
+            },
+            index
+          ) => {
+            const satelliteCount = payloads.reduce(
+              (accumulator, payload) =>
+                payload.payload_type === 'Satellite' ? 1 : 0 + accumulator,
+              0
+            );
+
+            let hoursSinceLastLaunch: number | null = null;
+            if (index < launchList.length - 1) {
+              const nextLaunch = sortedLaunchList[index + 1];
+              hoursSinceLastLaunch = Math.abs(
+                getDifferenceBetweenUTCDatesInHours(
+                  launch_date_utc,
+                  nextLaunch.launch_date_utc
+                )
+              );
+            }
+
+            return (
+              <LaunchCard
+                key={`${flight_number}-${launch_date_utc}`}
+                missionName={mission_name}
+                flightNumber={flight_number}
+                launchDate={launch_date_utc}
+                satelliteCount={satelliteCount}
+                hoursSinceLastLaunch={hoursSinceLastLaunch}
+                cost={cost}
+              />
             );
           }
-
-          return (
-            <LaunchCard
-              key={`${flight_number}-${launch_date_utc}`}
-              missionName={mission_name}
-              flightNumber={flight_number}
-              launchDate={launch_date_utc}
-              satelliteCount={satelliteCount}
-              hoursSinceLastLaunch={hoursSinceLastLaunch}
-              cost={cost}
-            />
-          );
-        }
-      )}
-    </ul>
+        )}
+      </ul>
+    </ErrorBoundary>
   );
 };
