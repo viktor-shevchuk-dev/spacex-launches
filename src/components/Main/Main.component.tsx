@@ -1,9 +1,9 @@
 import { FC, useState, useEffect } from 'react';
 
-import { ErrorBoundary, LaunchList } from 'components';
+import { LaunchList } from 'components';
 
 import { Launch, Status, Rocket, RocketCostMap } from 'types';
-import { fetchLaunchList, fetchRocket } from 'services';
+import * as API from 'services';
 
 export const Main: FC = () => {
   const [launchList, setLaunchList] = useState<Launch[]>([]);
@@ -20,17 +20,16 @@ export const Main: FC = () => {
 
   useEffect(() => {
     setLaunchListStatus(Status.PENDING);
-    fetchLaunchList()
+    API.fetchLaunchList()
       .then(
         (launchList: Launch[]) => {
-          console.log(launchList.slice(0, 5));
           setLaunchList(launchList);
           setLaunchListStatus(Status.RESOLVED);
 
           const rocketIdList = Array.from(
             new Set(launchList.map((launch) => launch.rocket.rocket_id))
           );
-          const rocketPromiseList = rocketIdList.map(fetchRocket);
+          const rocketPromiseList = rocketIdList.map(API.fetchRocket);
           return Promise.all(rocketPromiseList);
         },
         (error: Error) => {
@@ -50,7 +49,7 @@ export const Main: FC = () => {
           );
           setTimeout(() => {
             setRocketCostMapStatus(Status.RESOLVED);
-          }, 2000);
+          }, 1000);
         },
         (error: Error) => {
           setRocketCostMapError(error.message);
@@ -69,6 +68,78 @@ export const Main: FC = () => {
       },
     };
   });
+
+  const changeLaunchCost = async (
+    id: string,
+    field: { cost_per_launch: number }
+  ) => {
+    const originalCost = rocketCostMap[id];
+
+    try {
+      setRocketCostMap((prevRocketCostMap) => ({
+        ...prevRocketCostMap,
+        [id]: field.cost_per_launch,
+      }));
+      await API.editRocket(id, field);
+    } catch (error: Error) {
+      if (!window.confirm(`Error: ${error.message}. Rollback changes?`)) {
+        return;
+      }
+
+      setRocketCostMap((prevRocketCostMap) => ({
+        ...prevRocketCostMap,
+        [id]: originalCost,
+      }));
+    }
+  };
+
+  const changePayloadType = async (
+    launchId: string,
+    payloadId: string,
+    field: { payload_type: string }
+  ) => {
+    const originalLaunch = launchList.find(
+      (launch) =>
+        `${launch.flight_number}-${launch.launch_date_utc}` === launchId
+    );
+
+    try {
+      setLaunchList((prev) =>
+        prev.map((launch) => {
+          if (`${launch.flight_number}-${launch.launch_date_utc}` !== launchId)
+            return launch;
+
+          return {
+            ...launch,
+            rocket: {
+              ...launch.rocket,
+              second_stage: {
+                ...launch.rocket.second_stage,
+                payloads: launch.rocket.second_stage.payloads.map((payload) =>
+                  payload.payload_id === payloadId
+                    ? { ...payload, payload_type: field.payload_type }
+                    : payload
+                ),
+              },
+            },
+          };
+        })
+      );
+      await API.editPayload(payloadId, field);
+    } catch (error: Error) {
+      if (!window.confirm(`Error: ${error.message}. Rollback changes?`)) {
+        return;
+      }
+
+      setLaunchList((prev) =>
+        prev.map((launch) => {
+          if (`${launch.flight_number}-${launch.launch_date_utc}` !== launchId)
+            return launch;
+          return originalLaunch ? originalLaunch : launch;
+        })
+      );
+    }
+  };
 
   return (
     <main>
@@ -93,7 +164,11 @@ export const Main: FC = () => {
               </div>
             )}
 
-            <LaunchList launchList={launchListWithRocketCost} />
+            <LaunchList
+              onChangeLaunchCost={changeLaunchCost}
+              launchList={launchListWithRocketCost}
+              onChangePayloadType={changePayloadType}
+            />
           </>
         )}
       </div>
