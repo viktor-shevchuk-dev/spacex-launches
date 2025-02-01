@@ -3,7 +3,7 @@ import { FC } from 'react';
 import { parseISO, format } from 'date-fns';
 
 import classes from './LaunchCard.module.css';
-import { Cost, Status } from 'types';
+import { Cost, Status, Payload } from 'types';
 
 interface LaunchCardProps {
   id: string;
@@ -14,7 +14,7 @@ interface LaunchCardProps {
   hoursSinceLastLaunch: number | null;
   cost: Cost;
   rocketId: string;
-  payloadList: any[];
+  payloadList: Payload[];
   onChangeLaunchCost: (
     rocketId: string,
     field: { cost_per_launch: number }

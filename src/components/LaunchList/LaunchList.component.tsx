@@ -1,10 +1,10 @@
 import { FC } from 'react';
 
+import { Launch } from 'types';
+import { getDifferenceBetweenUTCDatesInHours } from 'utils';
 import { LaunchCard, ErrorBoundary } from 'components';
-import { Launch, Status, RocketCostMap } from 'types';
 
 import classes from './LaunchList.module.css';
-import { getDifferenceBetweenUTCDatesInHours } from 'utils';
 
 interface LaunchListProps {
   launchList: Launch[];

@@ -6,9 +6,10 @@ export const useLocalStorage = <T>(
   serialize = JSON.stringify,
   deserialize = JSON.parse
 ): [T, React.Dispatch<React.SetStateAction<T>>] => {
-  const [state, setState] = useState<T>(
-    () => deserialize(window.localStorage.getItem(key)) ?? initialValue
-  );
+  const [state, setState] = useState<T>(() => {
+    const storedValue = window.localStorage.getItem(key);
+    return storedValue !== null ? deserialize(storedValue) : initialValue;
+  });
 
   useEffect(() => {
     window.localStorage.setItem(key, serialize(state));
