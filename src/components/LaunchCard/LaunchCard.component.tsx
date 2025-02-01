@@ -50,7 +50,7 @@ export const LaunchCard: FC<LaunchCardProps> = ({
           Launch Date: {formattedLaunchDate}
         </p>
         <p className={classes.description}>Satellites: {satelliteCount}</p>
-        {hoursSinceLastLaunch && (
+        {hoursSinceLastLaunch !== null && (
           <p className={classes.description}>
             Hours Since Last Launch: {hoursSinceLastLaunch}
           </p>
