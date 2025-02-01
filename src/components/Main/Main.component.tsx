@@ -121,7 +121,7 @@ export const Main: FC = () => {
         {launchStatus === Status.RESOLVED && (
           <>
             <TotalCost
-              large
+              isSummary
               status={rocketStatus}
               error={rocketError}
               value={totalCost}

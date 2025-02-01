@@ -8,7 +8,7 @@ import {
   ChangeLaunchCostHandler,
   ChangePayloadTypeHandler,
 } from 'types';
-import { TotalCost, Button } from 'components';
+import { TotalCost, Button, PayloadList } from 'components';
 
 interface LaunchCardProps {
   launchId: string;
@@ -69,28 +69,11 @@ export const LaunchCard: FC<LaunchCardProps> = ({
         </Button>
       </TotalCost>
 
-      <ul className={classes['payload-list']}>
-        {payloadList.map(
-          ({ payload_id: payloadId, payload_type: payloadType }) => {
-            return (
-              <li key={payloadId} className={classes.payload}>
-                <p className={classes.description}>
-                  Payload Type: {payloadType}
-                </p>
-                <Button
-                  primary
-                  inverted
-                  onClick={onChangePayloadType.bind(null, launchId, payloadId, {
-                    payload_type: 'Satellite',
-                  })}
-                >
-                  Change payload type
-                </Button>
-              </li>
-            );
-          }
-        )}
-      </ul>
+      <PayloadList
+        launchId={launchId}
+        payloadList={payloadList}
+        onChangePayloadType={onChangePayloadType}
+      />
     </li>
   );
 };

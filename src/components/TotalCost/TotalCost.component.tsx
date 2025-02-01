@@ -9,7 +9,7 @@ interface TotalCostProps {
   error: string | null;
   value: number;
   label: string;
-  large?: boolean;
+  isSummary?: boolean;
   children?: ReactNode;
 }
 
@@ -18,11 +18,11 @@ export const TotalCost: FC<TotalCostProps> = ({
   error,
   value,
   label,
-  large,
+  isSummary,
   children,
 }) => {
   const textClasses = classNames.bind(classes)('cost', {
-    large,
+    summary: isSummary,
   });
 
   switch (status) {

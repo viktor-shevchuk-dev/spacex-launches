@@ -13,7 +13,6 @@ interface ButtonProps
   type?: 'button' | 'submit' | 'reset';
   extraClassName?: string;
   primary?: boolean;
-  inverted?: boolean;
   secondary?: boolean;
 }
 
@@ -23,7 +22,6 @@ export const Button: FC<ButtonProps> = ({
   type = 'button',
   extraClassName = '',
   primary,
-  inverted,
   secondary,
   ...props
 }) => (
@@ -32,7 +30,6 @@ export const Button: FC<ButtonProps> = ({
     className={classNames.bind(classes)('button', {
       [extraClassName]: extraClassName,
       primary,
-      inverted,
       secondary,
     })}
     onClick={onClick}
