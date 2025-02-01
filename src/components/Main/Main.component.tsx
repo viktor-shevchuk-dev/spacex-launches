@@ -1,9 +1,10 @@
-import { FC, useState, useEffect } from 'react';
+import { FC, useState, useEffect, useRef } from 'react';
+import isEqual from 'lodash/isEqual';
 
 import { LaunchList } from 'components';
-
 import { Launch, Status, Rocket, RocketCostMap } from 'types';
 import * as API from 'services';
+import { useBroadcastChannel } from 'hooks';
 
 export const Main: FC = () => {
   const [launchList, setLaunchList] = useState<Launch[]>([]);
@@ -17,6 +18,29 @@ export const Main: FC = () => {
   const [rocketCostMapError, setRocketCostMapError] = useState<string | null>(
     null
   );
+
+  const channelRef = useRef<BroadcastChannel>(
+    new BroadcastChannel('launch-cost-channel')
+  );
+  const prevRocketCostMapRef = useRef(rocketCostMap);
+
+  useEffect(() => {
+    if (!isEqual(prevRocketCostMapRef.current, rocketCostMap)) {
+      channelRef.current.postMessage(rocketCostMap);
+      prevRocketCostMapRef.current = rocketCostMap;
+    }
+  }, [rocketCostMap]);
+
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => setRocketCostMap(event.data);
+    const channel = channelRef.current;
+    channel.addEventListener('message', handleMessage);
+
+    return () => {
+      channel.removeEventListener('message', handleMessage);
+      channel.close();
+    };
+  }, []);
 
   useEffect(() => {
     setLaunchListStatus(Status.PENDING);
@@ -40,14 +64,16 @@ export const Main: FC = () => {
       )
       .then(
         (rocketList) => {
-          setRocketCostMapStatus(Status.PENDING);
-          setRocketCostMap(
-            rocketList.reduce((map: RocketCostMap, rocket) => {
-              map[rocket.rocket_id] = rocket.cost_per_launch;
-              return map;
-            }, {})
-          );
           setTimeout(() => {
+            setRocketCostMapStatus(Status.PENDING);
+            const rocketCostMap = rocketList.reduce(
+              (map: RocketCostMap, rocket) => {
+                map[rocket.rocket_id] = rocket.cost_per_launch;
+                return map;
+              },
+              {}
+            );
+            setRocketCostMap(rocketCostMap);
             setRocketCostMapStatus(Status.RESOLVED);
           }, 1000);
         },
