@@ -51,16 +51,14 @@ export const LaunchList: FC<LaunchListProps> = ({
               0
             );
 
-            let hoursSinceLastLaunch: number | null = null;
-            const isNotLastLaunch = index < launchList.length - 1;
+            const hoursSinceLastLaunch =
+              index < launchList.length - 1
+                ? getDifferenceBetweenUTCDatesInHours(
+                    launchDateUTC,
+                    sortedLaunchList[index + 1].launch_date_utc
+                  )
+                : null;
 
-            if (isNotLastLaunch) {
-              const nextLaunch = sortedLaunchList[index + 1];
-              hoursSinceLastLaunch = getDifferenceBetweenUTCDatesInHours(
-                launchDateUTC,
-                nextLaunch.launch_date_utc
-              );
-            }
             const launchId = `${flightNumber}-${launchDateUTC}`;
 
             return (
