@@ -47,7 +47,9 @@ export const Main: FC = () => {
               new Set(freshlaunchList.map((launch) => launch.rocket.rocket_id))
             );
             const rocketPromiseList = rocketIdList.map(API.fetchRocket);
-            setRocketCostMapStatus(Status.PENDING);
+            if (isEmpty(rocketCostMap)) {
+              setRocketCostMapStatus(Status.PENDING);
+            }
             return Promise.all(rocketPromiseList);
           },
           (error: Error) => {
@@ -86,6 +88,9 @@ export const Main: FC = () => {
               new Set(freshlaunchList.map((launch) => launch.rocket.rocket_id))
             );
             const rocketPromiseList = rocketIdList.map(API.fetchRocket);
+            if (isEmpty(rocketCostMap)) {
+              setRocketCostMapStatus(Status.PENDING);
+            }
             return Promise.all(rocketPromiseList);
           },
           (error: Error) => {
@@ -97,7 +102,6 @@ export const Main: FC = () => {
         .then(
           (rocketList) => {
             setTimeout(() => {
-              setRocketCostMapStatus(Status.PENDING);
               const rocketCostMap = rocketList.reduce(
                 (map: RocketCostMap, rocket) => {
                   map[rocket.rocket_id] = rocket.cost_per_launch;
