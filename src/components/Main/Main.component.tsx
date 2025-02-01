@@ -1,24 +1,27 @@
 import { FC, useState, useEffect } from 'react';
 
 import { LaunchList } from 'components';
-import { Launch, Status, Rocket, RocketCostMap } from 'types';
+import { Launch, Status, RocketCostMap } from 'types';
 import * as API from 'services';
 import { useBroadcastChannel, useLocalStorage } from 'hooks';
+import isEmpty from 'lodash/isEmpty';
 
 export const Main: FC = () => {
   const [launchList, setLaunchList] = useLocalStorage<Launch[]>(
     'launchList',
     []
   );
-  const [launchListStatus, setLaunchListStatus] = useState<Status>(Status.IDLE);
+  const [launchListStatus, setLaunchListStatus] = useState<Status>(() =>
+    launchList.length > 0 ? Status.RESOLVED : Status.IDLE
+  );
   const [launchListError, setLaunchListError] = useState<string | null>(null);
 
   const [rocketCostMap, setRocketCostMap] = useLocalStorage<RocketCostMap>(
     'rocketCostMap',
     {}
   );
-  const [rocketCostMapStatus, setRocketCostMapStatus] = useState<Status>(
-    Status.IDLE
+  const [rocketCostMapStatus, setRocketCostMapStatus] = useState<Status>(() =>
+    !isEmpty(rocketCostMap) ? Status.RESOLVED : Status.IDLE
   );
   const [rocketCostMapError, setRocketCostMapError] = useState<string | null>(
     null
@@ -32,48 +35,87 @@ export const Main: FC = () => {
   );
 
   useEffect(() => {
-    setLaunchListStatus(Status.PENDING);
-    API.fetchLaunchList()
-      .then(
-        (launchList: Launch[]) => {
-          setLaunchList(launchList);
-          setLaunchListStatus(Status.RESOLVED);
+    if (launchList.length === 0) {
+      setLaunchListStatus(Status.PENDING);
+      API.fetchLaunchList()
+        .then(
+          (freshlaunchList: Launch[]) => {
+            setLaunchList(freshlaunchList);
+            setLaunchListStatus(Status.RESOLVED);
 
-          const rocketIdList = Array.from(
-            new Set(launchList.map((launch) => launch.rocket.rocket_id))
-          );
-          const rocketPromiseList = rocketIdList.map(API.fetchRocket);
-          return Promise.all(rocketPromiseList);
-        },
-        (error: Error) => {
-          setLaunchListError(error.message);
-          setLaunchListStatus(Status.REJECTED);
-          throw error;
-        }
-      )
-      .then(
-        (rocketList) => {
-          setTimeout(() => {
-            setRocketCostMapStatus(Status.PENDING);
-            const rocketCostMap = rocketList.reduce(
-              (map: RocketCostMap, rocket) => {
-                map[rocket.rocket_id] = rocket.cost_per_launch;
-                return map;
-              },
-              {}
+            const rocketIdList = Array.from(
+              new Set(freshlaunchList.map((launch) => launch.rocket.rocket_id))
             );
-            setRocketCostMap(rocketCostMap);
-            setRocketCostMapStatus(Status.RESOLVED);
-          }, 1000);
-        },
-        (error: Error) => {
-          setRocketCostMapError(error.message);
-          setRocketCostMapStatus(Status.REJECTED);
-        }
-      );
-  }, [setLaunchList, setRocketCostMap]);
+            const rocketPromiseList = rocketIdList.map(API.fetchRocket);
+            setRocketCostMapStatus(Status.PENDING);
+            return Promise.all(rocketPromiseList);
+          },
+          (error: Error) => {
+            setLaunchListError(error.message);
+            setLaunchListStatus(Status.REJECTED);
+            throw error;
+          }
+        )
+        .then(
+          (rocketList) => {
+            setTimeout(() => {
+              const rocketCostMap = rocketList.reduce(
+                (map: RocketCostMap, rocket) => {
+                  map[rocket.rocket_id] = rocket.cost_per_launch;
+                  return map;
+                },
+                {}
+              );
+              setRocketCostMap(rocketCostMap);
+              setRocketCostMapStatus(Status.RESOLVED);
+            }, 1000);
+          },
+          (error: Error) => {
+            setRocketCostMapError(error.message);
+            setRocketCostMapStatus(Status.REJECTED);
+          }
+        );
+    } else {
+      API.fetchLaunchList()
+        .then(
+          (freshlaunchList: Launch[]) => {
+            setLaunchList(freshlaunchList);
+            setLaunchListStatus(Status.RESOLVED);
 
-  console.log(rocketCostMap);
+            const rocketIdList = Array.from(
+              new Set(freshlaunchList.map((launch) => launch.rocket.rocket_id))
+            );
+            const rocketPromiseList = rocketIdList.map(API.fetchRocket);
+            return Promise.all(rocketPromiseList);
+          },
+          (error: Error) => {
+            setLaunchListError(error.message);
+            setLaunchListStatus(Status.REJECTED);
+            throw error;
+          }
+        )
+        .then(
+          (rocketList) => {
+            setTimeout(() => {
+              setRocketCostMapStatus(Status.PENDING);
+              const rocketCostMap = rocketList.reduce(
+                (map: RocketCostMap, rocket) => {
+                  map[rocket.rocket_id] = rocket.cost_per_launch;
+                  return map;
+                },
+                {}
+              );
+              setRocketCostMap(rocketCostMap);
+              setRocketCostMapStatus(Status.RESOLVED);
+            }, 1000);
+          },
+          (error: Error) => {
+            setRocketCostMapError(error.message);
+            setRocketCostMapStatus(Status.REJECTED);
+          }
+        );
+    }
+  }, [launchList.length, setLaunchList, setRocketCostMap]);
 
   const launchListWithRocketCost = launchList.map((launch) => {
     return {
