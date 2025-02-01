@@ -4,6 +4,7 @@ import {
   Launch,
   ChangeLaunchCostHandler,
   ChangePayloadTypeHandler,
+  Status,
 } from 'types';
 import { getDifferenceBetweenUTCDatesInHours } from 'utils';
 import { LaunchCard, ErrorBoundary } from 'components';
@@ -11,6 +12,8 @@ import { LaunchCard, ErrorBoundary } from 'components';
 import classes from './LaunchList.module.css';
 
 interface LaunchListProps {
+  costStatus: Status;
+  costError: null | string;
   launchList: Launch[];
   onChangeLaunchCost: ChangeLaunchCostHandler;
   onChangePayloadType: ChangePayloadTypeHandler;
@@ -18,6 +21,8 @@ interface LaunchListProps {
 
 export const LaunchList: FC<LaunchListProps> = ({
   launchList,
+  costStatus,
+  costError,
   onChangeLaunchCost,
   onChangePayloadType,
 }) => {
@@ -68,6 +73,8 @@ export const LaunchList: FC<LaunchListProps> = ({
                 satelliteCount={satelliteCount}
                 hoursSinceLastLaunch={hoursSinceLastLaunch}
                 cost={cost}
+                costStatus={costStatus}
+                costError={costError}
                 rocketId={rocketId}
                 payloadList={payloadList}
                 onChangeLaunchCost={onChangeLaunchCost}

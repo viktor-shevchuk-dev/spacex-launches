@@ -98,15 +98,11 @@ export const Main: FC = () => {
 
   const launchListWithRocketCost = launchList.map((launch) => ({
     ...launch,
-    cost: {
-      status: rocketStatus,
-      error: rocketError,
-      value: rocketCostMap[launch.rocket.rocket_id],
-    },
+    cost: rocketCostMap[launch.rocket.rocket_id],
   }));
 
   const totalCost = launchListWithRocketCost.reduce(
-    (sum, launch) => sum + launch.cost.value,
+    (sum, launch) => sum + launch.cost,
     0
   );
 
@@ -129,6 +125,8 @@ export const Main: FC = () => {
               label="Total Cost of Launches"
             />
             <LaunchList
+              costStatus={rocketStatus}
+              costError={rocketError}
               onChangeLaunchCost={changeLaunchCost}
               launchList={launchListWithRocketCost}
               onChangePayloadType={changePayloadType}

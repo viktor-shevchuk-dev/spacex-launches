@@ -3,10 +3,10 @@ import { parseISO, format } from 'date-fns';
 
 import classes from './LaunchCard.module.css';
 import {
-  Cost,
   Payload,
   ChangeLaunchCostHandler,
   ChangePayloadTypeHandler,
+  Status,
 } from 'types';
 import { TotalCost, Button, PayloadList } from 'components';
 
@@ -17,7 +17,9 @@ interface LaunchCardProps {
   launchDateUTC: string;
   satelliteCount: number;
   hoursSinceLastLaunch: number | null;
-  cost: Cost;
+  cost: number;
+  costStatus: Status;
+  costError: null | string;
   rocketId: string;
   payloadList: Payload[];
   onChangeLaunchCost: ChangeLaunchCostHandler;
@@ -34,6 +36,8 @@ export const LaunchCard: FC<LaunchCardProps> = ({
   cost,
   payloadList,
   rocketId,
+  costStatus,
+  costError,
   onChangeLaunchCost,
   onChangePayloadType,
 }) => {
@@ -54,9 +58,9 @@ export const LaunchCard: FC<LaunchCardProps> = ({
       </div>
 
       <TotalCost
-        status={cost.status}
-        error={cost.error}
-        value={cost.value}
+        status={costStatus}
+        error={costError}
+        value={cost}
         label="Cost Per Launch"
       >
         <Button

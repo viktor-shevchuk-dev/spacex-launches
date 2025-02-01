@@ -1,11 +1,3 @@
-import { Status } from './Status.type';
-
-export interface Cost {
-  value: number;
-  status: Status;
-  error: string | null;
-}
-
 export interface Payload {
   payload_id: string;
   payload_type: string;
@@ -26,5 +18,5 @@ export interface Launch {
   flight_number: number;
   launch_date_utc: string;
   rocket: Rocket;
-  cost: Cost;
+  cost: number;
 }
