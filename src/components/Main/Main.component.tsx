@@ -25,15 +25,6 @@ export const Main: FC = () => {
     setRocketCostMap,
   } = useRocketCosts(launchList);
 
-  const launchListWithRocketCost = launchList.map((launch) => ({
-    ...launch,
-    cost: {
-      status: rocketStatus,
-      error: rocketError,
-      value: rocketCostMap[launch.rocket.rocket_id],
-    },
-  }));
-
   const changeLaunchCost: ChangeLaunchCostHandler = async (rocketId, field) => {
     const originalCost = rocketCostMap[rocketId];
 
@@ -44,8 +35,8 @@ export const Main: FC = () => {
       }));
       await API.editRocket(rocketId, field);
     } catch (error) {
-      const message = (error as Error).message;
-      if (!window.confirm(`Error: ${message}. Rollback changes?`)) {
+      const errorMessage = (error as Error).message;
+      if (!window.confirm(`Error: ${errorMessage}. Rollback changes?`)) {
         return;
       }
 
@@ -90,8 +81,8 @@ export const Main: FC = () => {
       );
       await API.editPayload(payloadId, field);
     } catch (error) {
-      const message = (error as Error).message;
-      if (!window.confirm(`Error: ${message}. Rollback changes?`)) {
+      const errorMessage = (error as Error).message;
+      if (!window.confirm(`Error: ${errorMessage}. Rollback changes?`)) {
         return;
       }
 
@@ -105,10 +96,20 @@ export const Main: FC = () => {
     }
   };
 
+  const launchListWithRocketCost = launchList.map((launch) => ({
+    ...launch,
+    cost: {
+      status: rocketStatus,
+      error: rocketError,
+      value: rocketCostMap[launch.rocket.rocket_id],
+    },
+  }));
+
   const totalCost = launchListWithRocketCost.reduce(
     (sum, launch) => sum + launch.cost.value,
     0
   );
+
   console.log({ launchStatus, rocketStatus });
 
   return (
