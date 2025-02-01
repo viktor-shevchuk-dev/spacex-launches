@@ -1,36 +1,36 @@
 import { useEffect, useRef } from 'react';
 import isEqual from 'lodash/isEqual';
 
-type SetState<T> = React.Dispatch<React.SetStateAction<T>>;
-type SetError = React.Dispatch<React.SetStateAction<string | null>>;
-
 export const useBroadcastChannel = <T>(
   name: string,
   state: T,
-  setState: SetState<T>,
-  setError: SetError
+  setState: React.Dispatch<React.SetStateAction<T>>,
+  setError: React.Dispatch<React.SetStateAction<string | null>>
 ) => {
-  const channelRef = useRef<BroadcastChannel>(new BroadcastChannel(name));
+  const channelRef = useRef<BroadcastChannel | null>(null);
   const prevStateRef = useRef<T>(state);
 
   useEffect(() => {
-    if (!isEqual(prevStateRef.current, state)) {
-      channelRef.current.postMessage(state);
-      prevStateRef.current = state;
-    }
-  }, [state]);
+    const channel = new BroadcastChannel(name);
+    channelRef.current = channel;
 
-  useEffect(() => {
     const handleMessage = ({ data }: MessageEvent) => setState(data);
     const handleMessageError = ({ data }: MessageEvent) => setError(data);
-    const channel = channelRef.current;
+
     channel.addEventListener('message', handleMessage);
     channel.addEventListener('messageerror', handleMessageError);
 
     return () => {
       channel.removeEventListener('message', handleMessage);
       channel.removeEventListener('messageerror', handleMessageError);
-      // channel.close();
+      channel.close();
     };
-  }, [setError, setState]);
+  }, [name, setError, setState]);
+
+  useEffect(() => {
+    if (!isEqual(prevStateRef.current, state)) {
+      channelRef.current?.postMessage(state);
+      prevStateRef.current = state;
+    }
+  }, [state]);
 };
