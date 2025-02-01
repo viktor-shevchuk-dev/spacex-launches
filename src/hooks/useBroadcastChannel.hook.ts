@@ -1,96 +1,36 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
+import isEqual from 'lodash/isEqual';
 
-interface UseBroadcastChannelOptions {
-  name: string;
-  onMessage?: (event: MessageEvent) => void;
-  onMessageError?: (event: MessageEvent) => void;
-}
+type SetState<T> = React.Dispatch<React.SetStateAction<T>>;
+type SetError = React.Dispatch<React.SetStateAction<string | null>>;
 
-interface UseBroadcastChannelReturn<D, P> {
-  isSupported: boolean;
-  channel: BroadcastChannel | undefined;
-  data: D | undefined;
-  post: (data: P) => void;
-  close: () => void;
-  messageError: Event | undefined;
-  isClosed: boolean;
-}
-
-export function useBroadcastChannel<D, P>(
-  options: UseBroadcastChannelOptions
-): UseBroadcastChannelReturn<D, P> {
-  const [isSupported, setIsSupported] = useState<boolean>(false);
-  const channelRef = useRef<BroadcastChannel | undefined>(undefined);
-  const [data, setData] = useState<D | undefined>();
-  const [messageError, setMessageError] = useState<Event | undefined>(
-    undefined
-  );
-  const [isClosed, setIsClosed] = useState<boolean>(false);
+export const useBroadcastChannel = <T>(
+  name: string,
+  state: T,
+  setState: SetState<T>,
+  setError: SetError
+) => {
+  const channelRef = useRef<BroadcastChannel>(new BroadcastChannel(name));
+  const prevStateRef = useRef<T>(state);
 
   useEffect(() => {
-    setIsSupported(
-      typeof window !== 'undefined' && 'BroadcastChannel' in window
-    );
-  }, []);
-
-  const handleMessage = useCallback(
-    (event: MessageEvent) => {
-      setData(event.data as D);
-      options.onMessage?.(event);
-    },
-    [options]
-  );
-
-  const handleMessageError = useCallback(
-    (event: MessageEvent) => {
-      setMessageError(event);
-      options.onMessageError?.(event);
-    },
-    [options]
-  );
+    if (!isEqual(prevStateRef.current, state)) {
+      channelRef.current.postMessage(state);
+      prevStateRef.current = state;
+    }
+  }, [state]);
 
   useEffect(() => {
-    if (isSupported) {
-      const newChannel = new BroadcastChannel(options.name);
-      channelRef.current = newChannel;
+    const handleMessage = ({ data }: MessageEvent) => setState(data);
+    const handleMessageError = ({ data }: MessageEvent) => setError(data);
+    const channel = channelRef.current;
+    channel.addEventListener('message', handleMessage);
+    channel.addEventListener('messageerror', handleMessageError);
 
-      newChannel.addEventListener('message', handleMessage);
-      newChannel.addEventListener('messageerror', handleMessageError);
-
-      return () => {
-        newChannel.removeEventListener('message', handleMessage);
-        newChannel.removeEventListener('messageerror', handleMessageError);
-        if (!isClosed) {
-          newChannel.close();
-        }
-        channelRef.current = undefined;
-      };
-    }
-  }, [isSupported, options.name, handleMessage, handleMessageError, isClosed]);
-
-  const post = useCallback(
-    (messageData: P) => {
-      if (channelRef.current && !isClosed) {
-        channelRef.current.postMessage(messageData);
-      }
-    },
-    [isClosed]
-  );
-
-  const close = useCallback(() => {
-    if (channelRef.current && !isClosed) {
-      channelRef.current.close();
-      setIsClosed(true);
-    }
-  }, [isClosed]);
-
-  return {
-    isSupported,
-    channel: channelRef.current,
-    data,
-    post,
-    close,
-    messageError,
-    isClosed,
-  };
-}
+    return () => {
+      channel.removeEventListener('message', handleMessage);
+      channel.removeEventListener('messageerror', handleMessageError);
+      channel.close();
+    };
+  }, [setError, setState]);
+};

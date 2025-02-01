@@ -1,5 +1,4 @@
-import { FC, useState, useEffect, useRef } from 'react';
-import isEqual from 'lodash/isEqual';
+import { FC, useState, useEffect } from 'react';
 
 import { LaunchList } from 'components';
 import { Launch, Status, Rocket, RocketCostMap } from 'types';
@@ -19,28 +18,12 @@ export const Main: FC = () => {
     null
   );
 
-  const channelRef = useRef<BroadcastChannel>(
-    new BroadcastChannel('launch-cost-channel')
+  useBroadcastChannel(
+    'rocket-cost-channel',
+    rocketCostMap,
+    setRocketCostMap,
+    setRocketCostMapError
   );
-  const prevRocketCostMapRef = useRef(rocketCostMap);
-
-  useEffect(() => {
-    if (!isEqual(prevRocketCostMapRef.current, rocketCostMap)) {
-      channelRef.current.postMessage(rocketCostMap);
-      prevRocketCostMapRef.current = rocketCostMap;
-    }
-  }, [rocketCostMap]);
-
-  useEffect(() => {
-    const handleMessage = (event: MessageEvent) => setRocketCostMap(event.data);
-    const channel = channelRef.current;
-    channel.addEventListener('message', handleMessage);
-
-    return () => {
-      channel.removeEventListener('message', handleMessage);
-      channel.close();
-    };
-  }, []);
 
   useEffect(() => {
     setLaunchListStatus(Status.PENDING);
