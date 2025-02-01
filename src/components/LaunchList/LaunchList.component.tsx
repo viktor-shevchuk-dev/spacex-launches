@@ -34,9 +34,9 @@ export const LaunchList: FC<LaunchListProps> = ({
         {sortedLaunchList.map(
           (
             {
-              flight_number,
-              mission_name,
-              launch_date_utc,
+              mission_name: missionName,
+              flight_number: flightNumber,
+              launch_date_utc: launchDateUTC,
               rocket: {
                 second_stage: { payloads: payloadList },
                 rocket_id: rocketId,
@@ -46,10 +46,8 @@ export const LaunchList: FC<LaunchListProps> = ({
             index
           ) => {
             const satelliteCount = payloadList.reduce(
-              (accumulator, payload) =>
-                payload.payload_type === 'Satellite'
-                  ? accumulator + 1
-                  : accumulator,
+              (accumulator, { payload_type: payloadType }) =>
+                payloadType === 'Satellite' ? accumulator + 1 : accumulator,
               0
             );
 
@@ -59,19 +57,19 @@ export const LaunchList: FC<LaunchListProps> = ({
             if (isNotLastLaunch) {
               const nextLaunch = sortedLaunchList[index + 1];
               hoursSinceLastLaunch = getDifferenceBetweenUTCDatesInHours(
-                launch_date_utc,
+                launchDateUTC,
                 nextLaunch.launch_date_utc
               );
             }
-            const launchId = `${flight_number}-${launch_date_utc}`;
+            const launchId = `${flightNumber}-${launchDateUTC}`;
 
             return (
               <LaunchCard
                 key={launchId}
                 id={launchId}
-                missionName={mission_name}
-                flightNumber={flight_number}
-                launchDate={launch_date_utc}
+                missionName={missionName}
+                flightNumber={flightNumber}
+                launchDateUTC={launchDateUTC}
                 satelliteCount={satelliteCount}
                 hoursSinceLastLaunch={hoursSinceLastLaunch}
                 cost={cost}

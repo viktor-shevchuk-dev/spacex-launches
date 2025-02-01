@@ -38,7 +38,6 @@ export const Main: FC = () => {
     try {
       if (!launchList.length) {
         setLaunchListStatus(Status.PENDING);
-
         const freshlaunchList = await API.fetchLaunchList();
         setTimeout(() => {
           setLaunchList(freshlaunchList);
@@ -89,29 +88,27 @@ export const Main: FC = () => {
     fetchRocketListHandler();
   }, [fetchRocketListHandler]);
 
-  const launchListWithRocketCost = launchList.map((launch) => {
-    return {
-      ...launch,
-      cost: {
-        status: rocketCostMapStatus,
-        error: rocketCostMapError,
-        value: rocketCostMap[launch.rocket.rocket_id],
-      },
-    };
-  });
+  const launchListWithRocketCost = launchList.map((launch) => ({
+    ...launch,
+    cost: {
+      status: rocketCostMapStatus,
+      error: rocketCostMapError,
+      value: rocketCostMap[launch.rocket.rocket_id],
+    },
+  }));
 
   const changeLaunchCost = async (
-    id: string,
+    rocketId: string,
     field: { cost_per_launch: number }
   ) => {
-    const originalCost = rocketCostMap[id];
+    const originalCost = rocketCostMap[rocketId];
 
     try {
       setRocketCostMap((prevRocketCostMap) => ({
         ...prevRocketCostMap,
-        [id]: field.cost_per_launch,
+        [rocketId]: field.cost_per_launch,
       }));
-      await API.editRocket(id, field);
+      await API.editRocket(rocketId, field);
     } catch (error) {
       const message = (error as Error).message;
       if (!window.confirm(`Error: ${message}. Rollback changes?`)) {
@@ -120,7 +117,7 @@ export const Main: FC = () => {
 
       setRocketCostMap((prevRocketCostMap) => ({
         ...prevRocketCostMap,
-        [id]: originalCost,
+        [rocketId]: originalCost,
       }));
     }
   };

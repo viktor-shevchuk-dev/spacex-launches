@@ -9,7 +9,7 @@ interface LaunchCardProps {
   id: string;
   missionName: string;
   flightNumber: number;
-  launchDate: string;
+  launchDateUTC: string;
   satelliteCount: number;
   hoursSinceLastLaunch: number | null;
   cost: Cost;
@@ -30,7 +30,7 @@ export const LaunchCard: FC<LaunchCardProps> = ({
   id,
   missionName,
   flightNumber,
-  launchDate,
+  launchDateUTC,
   satelliteCount,
   hoursSinceLastLaunch,
   cost,
@@ -39,15 +39,13 @@ export const LaunchCard: FC<LaunchCardProps> = ({
   onChangeLaunchCost,
   onChangePayloadType,
 }) => {
-  const formattedLaunchDate = format(parseISO(launchDate), 'MM.dd.yyyy');
-
   return (
     <li className={classes['launch-card']}>
       <h3 className={classes.title}>{missionName}</h3>
       <div className={classes['description-container']}>
         <p className={classes.description}>Flight Number: {flightNumber}</p>
         <p className={classes.description}>
-          Launch Date: {formattedLaunchDate}
+          Launch Date: {format(parseISO(launchDateUTC), 'MM.dd.yyyy')}
         </p>
         <p className={classes.description}>Satellites: {satelliteCount}</p>
         {hoursSinceLastLaunch !== null && (
@@ -79,29 +77,26 @@ export const LaunchCard: FC<LaunchCardProps> = ({
       )}
 
       <ul className={classes['payload-list']}>
-        {payloadList.map((payload) => {
-          return (
-            <li key={payload.payload_id} className={classes.payload}>
-              <p className={classes.description}>
-                Payload Type: {payload.payload_type}
-              </p>
-              <button
-                className={`${classes.button} ${classes.secondary}`}
-                type="button"
-                onClick={onChangePayloadType.bind(
-                  null,
-                  id,
-                  payload.payload_id,
-                  {
+        {payloadList.map(
+          ({ payload_id: payloadId, payload_type: payloadType }) => {
+            return (
+              <li key={payloadId} className={classes.payload}>
+                <p className={classes.description}>
+                  Payload Type: {payloadType}
+                </p>
+                <button
+                  className={`${classes.button} ${classes.secondary}`}
+                  type="button"
+                  onClick={onChangePayloadType.bind(null, id, payloadId, {
                     payload_type: 'Satellite',
-                  }
-                )}
-              >
-                Change payload type
-              </button>
-            </li>
-          );
-        })}
+                  })}
+                >
+                  Change payload type
+                </button>
+              </li>
+            );
+          }
+        )}
       </ul>
     </li>
   );

@@ -22,8 +22,8 @@ export interface Rocket {
 }
 
 export interface Launch {
-  flight_number: number;
   mission_name: string;
+  flight_number: number;
   launch_date_utc: string;
   rocket: Rocket;
   cost: Cost;
