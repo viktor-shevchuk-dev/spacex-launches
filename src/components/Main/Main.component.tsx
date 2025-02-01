@@ -3,14 +3,20 @@ import { FC, useState, useEffect } from 'react';
 import { LaunchList } from 'components';
 import { Launch, Status, Rocket, RocketCostMap } from 'types';
 import * as API from 'services';
-import { useBroadcastChannel } from 'hooks';
+import { useBroadcastChannel, useLocalStorage } from 'hooks';
 
 export const Main: FC = () => {
-  const [launchList, setLaunchList] = useState<Launch[]>([]);
+  const [launchList, setLaunchList] = useLocalStorage<Launch[]>(
+    'launchList',
+    []
+  );
   const [launchListStatus, setLaunchListStatus] = useState<Status>(Status.IDLE);
   const [launchListError, setLaunchListError] = useState<string | null>(null);
 
-  const [rocketCostMap, setRocketCostMap] = useState<RocketCostMap>({});
+  const [rocketCostMap, setRocketCostMap] = useLocalStorage<RocketCostMap>(
+    'rocketCostMap',
+    {}
+  );
   const [rocketCostMapStatus, setRocketCostMapStatus] = useState<Status>(
     Status.IDLE
   );
