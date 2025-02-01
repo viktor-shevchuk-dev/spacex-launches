@@ -1,0 +1,32 @@
+.button {
+  display: block;
+  padding: 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  border: none;
+  cursor: pointer;
+  font-family: Montserrat;
+  font-size: 20px;
+  line-height: 24px;
+  text-align: center;
+}
+
+.primary {
+  max-width: 233px;
+  background: #f65261;
+  font-weight: 500;
+  color: #fff;
+}
+
+.inverted {
+  background-color: #232323;
+  color: #f65261;
+  border: 1.5px solid #f65261;
+}
+
+.secondary {
+  max-width: 177px;
+  background: rgba(96, 96, 96, 0.68);
+  font-weight: 600;
+  color: #f65261;
+}

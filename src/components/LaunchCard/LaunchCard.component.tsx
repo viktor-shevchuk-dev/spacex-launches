@@ -1,9 +1,14 @@
 import { FC } from 'react';
-
 import { parseISO, format } from 'date-fns';
 
 import classes from './LaunchCard.module.css';
-import { Cost, Status, Payload } from 'types';
+import {
+  Cost,
+  Payload,
+  ChangeLaunchCostHandler,
+  ChangePayloadTypeHandler,
+} from 'types';
+import { TotalCost, Button } from 'components';
 
 interface LaunchCardProps {
   launchId: string;
@@ -15,15 +20,8 @@ interface LaunchCardProps {
   cost: Cost;
   rocketId: string;
   payloadList: Payload[];
-  onChangeLaunchCost: (
-    rocketId: string,
-    field: { cost_per_launch: number }
-  ) => void;
-  onChangePayloadType: (
-    launchId: string,
-    payloadId: string,
-    field: { payload_type: string }
-  ) => void;
+  onChangeLaunchCost: ChangeLaunchCostHandler;
+  onChangePayloadType: ChangePayloadTypeHandler;
 }
 
 export const LaunchCard: FC<LaunchCardProps> = ({
@@ -55,26 +53,21 @@ export const LaunchCard: FC<LaunchCardProps> = ({
         )}
       </div>
 
-      {cost.status === Status.PENDING && (
-        <p className={classes.description}>Loading Cost...</p>
-      )}
-      {cost.status === Status.REJECTED && (
-        <p className={classes.description}>{cost.error}</p>
-      )}
-      {cost.status === Status.RESOLVED && (
-        <div className={classes['cost-container']}>
-          <p className={classes.description}>Cost Per Launch: ${cost.value}</p>
-          <button
-            className={`${classes.button} ${classes.primary}`}
-            type="button"
-            onClick={onChangeLaunchCost.bind(null, rocketId, {
-              cost_per_launch: 1000000,
-            })}
-          >
-            Change cost of the launch
-          </button>
-        </div>
-      )}
+      <TotalCost
+        status={cost.status}
+        error={cost.error}
+        value={cost.value}
+        label="Cost Per Launch"
+      >
+        <Button
+          primary
+          onClick={onChangeLaunchCost.bind(null, rocketId, {
+            cost_per_launch: 1000000,
+          })}
+        >
+          Change cost of the launch
+        </Button>
+      </TotalCost>
 
       <ul className={classes['payload-list']}>
         {payloadList.map(
@@ -84,15 +77,15 @@ export const LaunchCard: FC<LaunchCardProps> = ({
                 <p className={classes.description}>
                   Payload Type: {payloadType}
                 </p>
-                <button
-                  className={`${classes.button} ${classes.secondary}`}
-                  type="button"
+                <Button
+                  primary
+                  inverted
                   onClick={onChangePayloadType.bind(null, launchId, payloadId, {
                     payload_type: 'Satellite',
                   })}
                 >
                   Change payload type
-                </button>
+                </Button>
               </li>
             );
           }

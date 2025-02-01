@@ -1,7 +1,11 @@
 import { FC } from 'react';
 
 import { LaunchList, TotalCost } from 'components';
-import { Status } from 'types';
+import {
+  ChangeLaunchCostHandler,
+  ChangePayloadTypeHandler,
+  Status,
+} from 'types';
 import * as API from 'services';
 import { useLaunches, useRocketCosts } from 'hooks';
 import classes from './Main.module.css';
@@ -30,10 +34,7 @@ export const Main: FC = () => {
     },
   }));
 
-  const changeLaunchCost = async (
-    rocketId: string,
-    field: { cost_per_launch: number }
-  ) => {
+  const changeLaunchCost: ChangeLaunchCostHandler = async (rocketId, field) => {
     const originalCost = rocketCostMap[rocketId];
 
     try {
@@ -55,10 +56,10 @@ export const Main: FC = () => {
     }
   };
 
-  const changePayloadType = async (
-    launchId: string,
-    payloadId: string,
-    field: { payload_type: string }
+  const changePayloadType: ChangePayloadTypeHandler = async (
+    launchId,
+    payloadId,
+    field
   ) => {
     const originalLaunch = launchList.find(
       (launch) =>
@@ -120,9 +121,11 @@ export const Main: FC = () => {
         {launchStatus === Status.RESOLVED && (
           <>
             <TotalCost
+              large
               status={rocketStatus}
               error={rocketError}
-              total={totalCost}
+              value={totalCost}
+              label="Total Cost of Launches"
             />
             <LaunchList
               onChangeLaunchCost={changeLaunchCost}

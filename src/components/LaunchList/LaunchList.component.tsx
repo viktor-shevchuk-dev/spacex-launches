@@ -1,6 +1,10 @@
 import { FC } from 'react';
 
-import { Launch } from 'types';
+import {
+  Launch,
+  ChangeLaunchCostHandler,
+  ChangePayloadTypeHandler,
+} from 'types';
 import { getDifferenceBetweenUTCDatesInHours } from 'utils';
 import { LaunchCard, ErrorBoundary } from 'components';
 
@@ -8,15 +12,8 @@ import classes from './LaunchList.module.css';
 
 interface LaunchListProps {
   launchList: Launch[];
-  onChangeLaunchCost: (
-    rocketId: string,
-    field: { cost_per_launch: number }
-  ) => void;
-  onChangePayloadType: (
-    launchId: string,
-    payloadId: string,
-    field: { payload_type: string }
-  ) => void;
+  onChangeLaunchCost: ChangeLaunchCostHandler;
+  onChangePayloadType: ChangePayloadTypeHandler;
 }
 
 export const LaunchList: FC<LaunchListProps> = ({
