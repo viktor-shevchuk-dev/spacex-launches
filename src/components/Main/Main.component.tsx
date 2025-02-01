@@ -4,6 +4,7 @@ import { LaunchList } from 'components';
 import { Launch, Status, RocketCostMap } from 'types';
 import * as API from 'services';
 import { useBroadcastChannel, useLocalStorage } from 'hooks';
+import classes from './Main.module.css';
 
 export const Main: FC = () => {
   const [launchList, setLaunchList] = useLocalStorage<Launch[]>(
@@ -181,21 +182,25 @@ export const Main: FC = () => {
 
   return (
     <main>
-      <div className="container">
-        {launchListStatus === Status.PENDING && <p>Loading...</p>}
+      <div className={`container ${classes['launch-shelf']}`}>
+        {launchListStatus === Status.PENDING && (
+          <p className={classes.loading}>Loading...</p>
+        )}
         {launchListStatus === Status.REJECTED && <p>{launchListError}</p>}
         {launchListStatus === Status.RESOLVED && (
           <>
             {rocketCostMapStatus === Status.PENDING && (
-              <p>Loading Total Cost of Launches...</p>
+              <p className={classes['total-cost']}>
+                Loading Total Cost of Launches...
+              </p>
             )}
             {rocketCostMapStatus === Status.REJECTED && (
-              <p>{rocketCostMapError}</p>
+              <p className={classes['total-cost']}>{rocketCostMapError}</p>
             )}
             {rocketCostMapStatus === Status.RESOLVED && (
-              <div className="total-cost">
+              <p className={classes['total-cost']}>
                 Total Cost of Launches: ${totalCost}
-              </div>
+              </p>
             )}
 
             <LaunchList

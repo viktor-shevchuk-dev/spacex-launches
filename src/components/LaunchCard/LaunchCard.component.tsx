@@ -42,34 +42,51 @@ export const LaunchCard: FC<LaunchCardProps> = ({
   const formattedLaunchDate = format(parseISO(launchDate), 'MM.dd.yyyy');
 
   return (
-    <li className={classes.card}>
-      <h3>{missionName}</h3>
-      <p>Flight Number: {flightNumber}</p>
-      <p>Launch Date: {formattedLaunchDate}</p>
-      <p>Satellites: {satelliteCount}</p>
-      {hoursSinceLastLaunch && (
-        <p>Hours Since Last Launch: {hoursSinceLastLaunch}</p>
+    <li className={classes['launch-card']}>
+      <h3 className={classes.title}>{missionName}</h3>
+      <div className={classes['description-container']}>
+        <p className={classes.description}>Flight Number: {flightNumber}</p>
+        <p className={classes.description}>
+          Launch Date: {formattedLaunchDate}
+        </p>
+        <p className={classes.description}>Satellites: {satelliteCount}</p>
+        {hoursSinceLastLaunch && (
+          <p className={classes.description}>
+            Hours Since Last Launch: {hoursSinceLastLaunch}
+          </p>
+        )}
+      </div>
+
+      {cost.status === Status.PENDING && (
+        <p className={classes.description}>Loading Cost...</p>
+      )}
+      {cost.status === Status.REJECTED && (
+        <p className={classes.description}>{cost.error}</p>
+      )}
+      {cost.status === Status.RESOLVED && (
+        <div className={classes['cost-container']}>
+          <p className={classes.description}>Cost Per Launch: ${cost.value}</p>
+          <button
+            className={`${classes.button} ${classes.primary}`}
+            type="button"
+            onClick={onChangeLaunchCost.bind(null, rocketId, {
+              cost_per_launch: 1000000,
+            })}
+          >
+            Change cost of the launch
+          </button>
+        </div>
       )}
 
-      {cost.status === Status.PENDING && <p>Loading Cost...</p>}
-      {cost.status === Status.REJECTED && <p>{cost.error}</p>}
-      {cost.status === Status.RESOLVED && <p>Cost Per Launch: ${cost.value}</p>}
-
-      <button
-        type="button"
-        onClick={onChangeLaunchCost.bind(null, rocketId, {
-          cost_per_launch: 1000000,
-        })}
-      >
-        Change cost of the launch
-      </button>
-
-      <ul>
+      <ul className={classes['payload-list']}>
         {payloadList.map((payload) => {
           return (
-            <li key={payload.payload_id}>
-              <p>Payload Type: {payload.payload_type}</p>
+            <li key={payload.payload_id} className={classes.payload}>
+              <p className={classes.description}>
+                Payload Type: {payload.payload_type}
+              </p>
               <button
+                className={`${classes.button} ${classes.secondary}`}
                 type="button"
                 onClick={onChangePayloadType.bind(
                   null,
