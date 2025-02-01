@@ -71,7 +71,9 @@ export const Main: FC = () => {
           setRocketCostMapStatus(Status.REJECTED);
         }
       );
-  }, []);
+  }, [setLaunchList, setRocketCostMap]);
+
+  console.log(rocketCostMap);
 
   const launchListWithRocketCost = launchList.map((launch) => {
     return {
