@@ -1,98 +1,31 @@
-import { FC, useState, useEffect, useCallback } from 'react';
+import { FC } from 'react';
 
-import { LaunchList } from 'components';
-import { Launch, Status, RocketCostMap } from 'types';
+import { LaunchList, TotalCost } from 'components';
+import { Status } from 'types';
 import * as API from 'services';
-import { useBroadcastChannel, useLocalStorage } from 'hooks';
+import { useLaunches, useRocketCosts } from 'hooks';
 import classes from './Main.module.css';
 
 export const Main: FC = () => {
-  const [launchList, setLaunchList] = useLocalStorage<Launch[]>(
-    'launchList',
-    []
-  );
-  const [launchListStatus, setLaunchListStatus] = useState<Status>(() =>
-    launchList.length ? Status.RESOLVED : Status.IDLE
-  );
-  const [launchListError, setLaunchListError] = useState<string | null>(null);
+  const {
+    launchList,
+    status: launchStatus,
+    error: launchError,
+    setLaunchList,
+  } = useLaunches();
 
-  const [rocketCostMap, setRocketCostMap] = useLocalStorage<RocketCostMap>(
-    'rocketCostMap',
-    {}
-  );
-  const [rocketCostMapStatus, setRocketCostMapStatus] = useState<Status>(() =>
-    Object.entries(rocketCostMap).length ? Status.RESOLVED : Status.PENDING
-  );
-  const [rocketCostMapError, setRocketCostMapError] = useState<string | null>(
-    null
-  );
-
-  useBroadcastChannel(
-    'rocket-cost-channel',
+  const {
     rocketCostMap,
+    status: rocketStatus,
+    error: rocketError,
     setRocketCostMap,
-    setRocketCostMapError
-  );
-
-  const fetchLaunchListHandler = useCallback(async () => {
-    try {
-      if (!launchList.length) {
-        setLaunchListStatus(Status.PENDING);
-        const freshlaunchList = await API.fetchLaunchList();
-        setTimeout(() => {
-          setLaunchList(freshlaunchList);
-          setLaunchListStatus(Status.RESOLVED);
-        }, 500);
-      }
-    } catch (error) {
-      const message = (error as Error).message;
-      setLaunchListError(message);
-      setLaunchListStatus(Status.REJECTED);
-    }
-  }, [launchList.length, setLaunchList]);
-
-  const fetchRocketListHandler = useCallback(async () => {
-    try {
-      if (launchList.length && !Object.entries(rocketCostMap).length) {
-        setRocketCostMapStatus(Status.PENDING);
-        const rocketIdList = Array.from(
-          new Set(launchList.map((launch) => launch.rocket.rocket_id))
-        );
-        const rocketPromiseList = rocketIdList.map(API.fetchRocket);
-        const freshRocketList = await Promise.all(rocketPromiseList);
-        const newRocketCostMap = freshRocketList.reduce(
-          (map: RocketCostMap, rocket) => {
-            map[rocket.rocket_id] = rocket.cost_per_launch;
-            return map;
-          },
-          {}
-        );
-
-        setTimeout(() => {
-          setRocketCostMap(newRocketCostMap);
-          setRocketCostMapStatus(Status.RESOLVED);
-        }, 3000);
-      }
-    } catch (error) {
-      const message = (error as Error).message;
-      setRocketCostMapError(message);
-      setRocketCostMapStatus(Status.REJECTED);
-    }
-  }, [launchList, rocketCostMap, setRocketCostMap]);
-
-  useEffect(() => {
-    fetchLaunchListHandler();
-  }, [fetchLaunchListHandler]);
-
-  useEffect(() => {
-    fetchRocketListHandler();
-  }, [fetchRocketListHandler]);
+  } = useRocketCosts(launchList);
 
   const launchListWithRocketCost = launchList.map((launch) => ({
     ...launch,
     cost: {
-      status: rocketCostMapStatus,
-      error: rocketCostMapError,
+      status: rocketStatus,
+      error: rocketError,
       value: rocketCostMap[launch.rocket.rocket_id],
     },
   }));
@@ -133,8 +66,8 @@ export const Main: FC = () => {
     );
 
     try {
-      setLaunchList((prev) =>
-        prev.map((launch) => {
+      setLaunchList((prevLaunchList) =>
+        prevLaunchList.map((launch) => {
           if (`${launch.flight_number}-${launch.launch_date_utc}` !== launchId)
             return launch;
 
@@ -175,31 +108,22 @@ export const Main: FC = () => {
     (sum, launch) => sum + launch.cost.value,
     0
   );
-  console.log({ launchListStatus, rocketCostMapStatus });
+  console.log({ launchStatus, rocketStatus });
 
   return (
     <main>
       <div className={`container ${classes['launch-shelf']}`}>
-        {launchListStatus === Status.PENDING && (
+        {launchStatus === Status.PENDING && (
           <p className={classes.loading}>Loading...</p>
         )}
-        {launchListStatus === Status.REJECTED && <p>{launchListError}</p>}
-        {launchListStatus === Status.RESOLVED && (
+        {launchStatus === Status.REJECTED && <p>{launchError}</p>}
+        {launchStatus === Status.RESOLVED && (
           <>
-            {rocketCostMapStatus === Status.PENDING && (
-              <p className={classes['total-cost']}>
-                Loading Total Cost of Launches...
-              </p>
-            )}
-            {rocketCostMapStatus === Status.REJECTED && (
-              <p className={classes['total-cost']}>{rocketCostMapError}</p>
-            )}
-            {rocketCostMapStatus === Status.RESOLVED && (
-              <p className={classes['total-cost']}>
-                Total Cost of Launches: ${totalCost}
-              </p>
-            )}
-
+            <TotalCost
+              status={rocketStatus}
+              error={rocketError}
+              total={totalCost}
+            />
             <LaunchList
               onChangeLaunchCost={changeLaunchCost}
               launchList={launchListWithRocketCost}

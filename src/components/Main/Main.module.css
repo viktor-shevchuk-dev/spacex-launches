@@ -2,17 +2,6 @@
   padding: 20px;
 }
 
-.total-cost {
-  margin: 0 0 28px 0;
-  font-family: Montserrat;
-  font-size: 48px;
-  font-weight: 400;
-  line-height: 1.2;
-  color: #ffffff;
-  text-align: center;
-  opacity: 0.7;
-}
-
 .loading {
   font-family: 'Montserrat';
   font-weight: 900;

@@ -66,7 +66,7 @@ export const LaunchList: FC<LaunchListProps> = ({
             return (
               <LaunchCard
                 key={launchId}
-                id={launchId}
+                launchId={launchId}
                 missionName={missionName}
                 flightNumber={flightNumber}
                 launchDateUTC={launchDateUTC}

@@ -6,7 +6,7 @@ import classes from './LaunchCard.module.css';
 import { Cost, Status, Payload } from 'types';
 
 interface LaunchCardProps {
-  id: string;
+  launchId: string;
   missionName: string;
   flightNumber: number;
   launchDateUTC: string;
@@ -27,7 +27,7 @@ interface LaunchCardProps {
 }
 
 export const LaunchCard: FC<LaunchCardProps> = ({
-  id,
+  launchId,
   missionName,
   flightNumber,
   launchDateUTC,
@@ -87,7 +87,7 @@ export const LaunchCard: FC<LaunchCardProps> = ({
                 <button
                   className={`${classes.button} ${classes.secondary}`}
                   type="button"
-                  onClick={onChangePayloadType.bind(null, id, payloadId, {
+                  onClick={onChangePayloadType.bind(null, launchId, payloadId, {
                     payload_type: 'Satellite',
                   })}
                 >
