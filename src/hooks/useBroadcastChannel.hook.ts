@@ -30,7 +30,7 @@ export const useBroadcastChannel = <T>(
     return () => {
       channel.removeEventListener('message', handleMessage);
       channel.removeEventListener('messageerror', handleMessageError);
-      channel.close();
+      // channel.close();
     };
   }, [setError, setState]);
 };
