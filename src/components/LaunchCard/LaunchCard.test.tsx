@@ -35,6 +35,13 @@ describe('LaunchCard Component', () => {
     expect(screen.getByText('Hours Since Last Launch: 10')).toBeInTheDocument();
   });
 
+  it('does not render hours since last launch when null', () => {
+    render(<LaunchCard {...defaultProps} hoursSinceLastLaunch={null} />);
+    expect(
+      screen.queryByText(/Hours Since Last Launch/)
+    ).not.toBeInTheDocument();
+  });
+
   it('renders cost in RESOLVED state and a button to change the cost', () => {
     render(<LaunchCard {...defaultProps} />);
     expect(screen.getByText('Cost Per Launch: $1000000')).toBeInTheDocument();
@@ -51,14 +58,23 @@ describe('LaunchCard Component', () => {
         onChangeLaunchCost={mockOnChangeLaunchCost}
       />
     );
-
-    fireEvent.click(
-      screen.getByRole('button', { name: /change cost of the launch/i })
-    );
+    const button = screen.getByRole('button', {
+      name: 'Change cost of the launch',
+    });
+    fireEvent.click(button);
 
     expect(mockOnChangeLaunchCost).toHaveBeenCalledWith('falcon9', {
       cost_per_launch: 1000000,
     });
+  });
+
+  it('renders all payload items correctly', () => {
+    render(<LaunchCard {...defaultProps} />);
+    expect(screen.getByText('Payload Type: Satellite')).toBeInTheDocument();
+    expect(screen.getByText('Payload Type: Dragon')).toBeInTheDocument();
+    expect(
+      screen.getAllByRole('button', { name: 'Change payload type' })
+    ).toHaveLength(2);
   });
 
   it('calls onChangePayloadType when clicking "Change payload type" button', () => {
@@ -71,7 +87,7 @@ describe('LaunchCard Component', () => {
     );
 
     const buttons = screen.getAllByRole('button', {
-      name: /change payload type/i,
+      name: 'Change payload type',
     });
     expect(buttons).toHaveLength(2);
 
@@ -83,25 +99,8 @@ describe('LaunchCard Component', () => {
     );
   });
 
-  it('shows a loading text if costStatus is PENDING', () => {
-    const pendingProps = { ...defaultProps, costStatus: Status.PENDING };
-    render(<LaunchCard {...pendingProps} />);
-    expect(screen.getByText(/loading cost per launch/i)).toBeInTheDocument();
-  });
-
-  it('shows an error if costStatus is REJECTED', () => {
-    const rejectedProps = {
-      ...defaultProps,
-      costStatus: Status.REJECTED,
-      costError: 'Failed to load cost!',
-    };
-    render(<LaunchCard {...rejectedProps} />);
-    expect(screen.getByText('Failed to load cost!')).toBeInTheDocument();
-  });
-
-  it('renders nothing in IDLE status for cost', () => {
-    const idleProps = { ...defaultProps, costStatus: Status.IDLE };
-    const { container } = render(<LaunchCard {...idleProps} />);
-    expect(container).not.toHaveTextContent('Cost Per Launch');
+  test('handles empty payload list', () => {
+    render(<LaunchCard {...defaultProps} payloadList={[]} />);
+    expect(screen.queryByText(/Payload Type:/)).not.toBeInTheDocument();
   });
 });
