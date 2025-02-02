@@ -2,7 +2,7 @@ import { FC } from 'react';
 
 import classes from './PayloadList.module.css';
 import { ChangePayloadTypeHandler, Payload } from 'types';
-import { Button } from 'components/Button';
+import { Button } from 'components';
 
 interface PayloadListProps {
   payloadList: Payload[];
@@ -22,9 +22,11 @@ export const PayloadList: FC<PayloadListProps> = ({
           <p className={classes.description}>Payload Type: {payloadType}</p>
           <Button
             secondary
-            onClick={onChangePayloadType.bind(null, launchId, payloadId, {
-              payload_type: 'Satellite',
-            })}
+            onClick={() =>
+              onChangePayloadType(launchId, payloadId, {
+                payload_type: 'Satellite',
+              })
+            }
           >
             Change payload type
           </Button>

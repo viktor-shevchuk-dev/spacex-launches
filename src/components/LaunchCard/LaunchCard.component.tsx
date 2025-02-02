@@ -65,9 +65,9 @@ export const LaunchCard: FC<LaunchCardProps> = ({
       >
         <Button
           primary
-          onClick={onChangeLaunchCost.bind(null, rocketId, {
-            cost_per_launch: 1000000,
-          })}
+          onClick={() =>
+            onChangeLaunchCost(rocketId, { cost_per_launch: 1000000 })
+          }
         >
           Change cost of the launch
         </Button>
