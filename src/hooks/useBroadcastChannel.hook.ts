@@ -11,20 +11,25 @@ export const useBroadcastChannel = <T>(
   const prevStateRef = useRef<T>(state);
 
   useEffect(() => {
-    const channel = new BroadcastChannel(name);
-    channelRef.current = channel;
+    try {
+      const channel = new BroadcastChannel(name);
+      channelRef.current = channel;
 
-    const handleMessage = ({ data }: MessageEvent) => setState(data);
-    const handleMessageError = ({ data }: MessageEvent) => setError(data);
+      const handleMessage = ({ data }: MessageEvent) => setState(data);
+      const handleMessageError = ({ data }: MessageEvent) => setError(data);
 
-    channel.addEventListener('message', handleMessage);
-    channel.addEventListener('messageerror', handleMessageError);
+      channel.addEventListener('message', handleMessage);
+      channel.addEventListener('messageerror', handleMessageError);
 
-    return () => {
-      channel.removeEventListener('message', handleMessage);
-      channel.removeEventListener('messageerror', handleMessageError);
-      channel.close();
-    };
+      return () => {
+        channel.removeEventListener('message', handleMessage);
+        channel.removeEventListener('messageerror', handleMessageError);
+        channel.close();
+      };
+    } catch (error) {
+      const errMsg = error instanceof Error ? error.message : String(error);
+      setError(errMsg);
+    }
   }, [name, setError, setState]);
 
   useEffect(() => {
