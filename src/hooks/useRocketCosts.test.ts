@@ -19,6 +19,8 @@ const mockLaunches = [
   },
 ];
 
+const originalBroadcastChannel = global.BroadcastChannel;
+
 describe('useRocketCosts', () => {
   let broadcastChannelMock: {
     postMessage: jest.Mock;
@@ -28,7 +30,6 @@ describe('useRocketCosts', () => {
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
     window.localStorage.clear();
 
     broadcastChannelMock = {
@@ -39,6 +40,11 @@ describe('useRocketCosts', () => {
     };
 
     global.BroadcastChannel = jest.fn(() => broadcastChannelMock) as any;
+  });
+
+  afterEach(() => {
+    global.BroadcastChannel = originalBroadcastChannel;
+    jest.clearAllMocks();
   });
 
   it('fetches rocket costs and builds cost map', async () => {
